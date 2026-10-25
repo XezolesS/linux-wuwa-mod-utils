@@ -42,7 +42,7 @@ The scripts are **NOT** AI-assisted.
 |`toggle-wwmi-mod`|Enable/disable installed WWMI mod.|
 |`intsall-reshade`|Install ReShade.|
 |`install-wwmi-dx12`|Install WWMI-DX12 (ReShade required).|
-|`run-wwmi-dx12`|Run WWMI-DX12 script using Proton."|
+|`run-wwmi-dx12`|Run WWMI-DX12 script using Proton.|
 
 ### Command in detail
 
@@ -76,7 +76,11 @@ Options:
 
 ### `add-wwmi-mod`
 
-Currently a placeholder.
+```bash
+./wuwa-mod-utils.sh add-wwmi-mod ZIP_PATH [MOD_NAME]
+```
+
+Add a mod from zip file.
 
 ### `rm-wwmi-mod`
 
