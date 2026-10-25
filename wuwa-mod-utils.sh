@@ -328,7 +328,7 @@ ls-wwmi-mod() {
 
   WWMI_MODS=()
   for mod in "$path"/*; do
-    [[ -d "$mod" ]] && [[ "$mod" != "DISABLED" ]] && WWMI_MODS+=("$mod")
+    [[ -d "$mod" ]] && [[ "$(basename "$mod")" != "DISABLED" ]] && WWMI_MODS+=("$mod")
   done
 
   for mod in "$path/DISABLED"/*; do
@@ -384,7 +384,50 @@ rename-wwmi-mod() {
 }
 
 toggle-wwmi-mod() {
-  true
+  prepare
+
+  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  if [[ ! -d "$path" ]]; then
+    print_error "WWMI is not installed. Install and run XXMI first."
+    exit 1
+  fi
+
+  ls-wwmi-mod
+  printf "%s" "Select a mod to toggle. [1-${#WWMI_MODS[@]}]: "
+  read -r m_select
+
+  if ((1 <= m_select)) && ((m_select <= "${#WWMI_MODS[@]}")); then
+    local mod="${WWMI_MODS["$((m_select - 1))"]}"
+    local mod_name
+    mod_name="$(basename "$mod")"
+
+    if [[ ! -d "$path/DISABLED" ]]; then
+      mkdir "$path/DISABLED"
+    fi
+
+    local new_path
+    local result_text
+
+    if [[ "${mod}" == *"DISABLED"* ]]; then
+      if [[ "${mod_name}" == "DISABLED"* ]]; then
+        # DISABLED, by filename
+        new_path="$path/$(echo "${mod_name/DISABLED/}" | xargs)"
+      else
+        # DISABLED, in DISABELD dir
+        new_path="$path/$mod_name"
+      fi
+
+      result_text="enabled"
+    else
+      # ENABLED
+      new_path="$path/DISABLED/$mod_name"
+
+      result_text="disabled"
+    fi
+
+    mv "$mod" "$new_path"
+    print_success "Mod '$mod_name' is $result_text."
+  fi
 }
 
 install-reshade() {
