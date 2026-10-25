@@ -328,12 +328,24 @@ ls-wwmi-mod() {
 
   WWMI_MODS=()
   for mod in "$path"/*; do
+    [[ -d "$mod" ]] && [[ "$mod" != "DISABLED" ]] && WWMI_MODS+=("$mod")
+  done
+
+  for mod in "$path/DISABLED"/*; do
     [[ -d "$mod" ]] && WWMI_MODS+=("$mod")
   done
 
-  echo "${#WWMI_MODS[@]} mod(s) installed."
+  echo "${#WWMI_MODS[@]} mod(s) installed. ([v]: enabled, [ ]: disabled)"
+  local mod_name
+  local enable_mark
+
   for i in "${!WWMI_MODS[@]}"; do
-    echo "  $((i + 1)). $(basename "${WWMI_MODS["$i"]}")"
+    mod_name=$(basename "${WWMI_MODS["$i"]}")
+    mod_name=$(echo "${mod_name/DISABLED/}" | xargs)
+
+    enable_mark="v" && [[ "${WWMI_MODS[$i]}" == *"DISABLED"* ]] && enable_mark=" "
+
+    printf "  %d) [%s] %s\n" "$((i + 1))" "$enable_mark" "$mod_name"
   done
 }
 
@@ -361,7 +373,7 @@ rename-wwmi-mod() {
     if [[ -z "$new_mod_name" ]]; then
       print_error "Mod name cannot be empty."
       exit 1
-    elif [[ "$new_mod_name" =~ \w*\/\w* ]]; then
+    elif [[ "$new_mod_name" == */* ]]; then
       print_error "Mod name cannot contains character '/'."
       exit 1
     else
