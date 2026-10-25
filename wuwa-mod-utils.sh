@@ -170,6 +170,11 @@ prepare_proton() {
 
 # commands
 install-deps() {
+  if ! which protontrick &>/dev/null; then
+    print_error "'protontricks' is not installed! Please install it first."
+    exit 1
+  fi
+
   protontricks "$APPID" d3dcompiler_47 && print_success "'d3dcompiler_47' is installed."
   protontricks "$APPID" powershell && print_success "'powershell' is installed."
 }
