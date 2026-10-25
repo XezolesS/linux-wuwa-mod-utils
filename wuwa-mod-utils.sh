@@ -57,6 +57,12 @@ print_error() {
   echo -e "\033[0;31m[ERROR]\033[0m $1"
 }
 
+win_path() {
+  local drive="$1"
+  local path="$2"
+  printf "%s:%s" "$drive" "${path//\//\\}"
+}
+
 prepare() {
   # find Steam
   STEAM_ROOT="$HOME/.steam/steam"
@@ -225,13 +231,13 @@ install-xxmi() {
   if [[ -f "$1" ]] && [[ "$1" =~ \.zip ]]; then
     XXMI_ZIP_PATH="$1"
 
-    local _path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME"
-    if [[ ! -d "$_path" ]]; then
-      mkdir "$_path"
+    local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME"
+    if [[ ! -d "$path" ]]; then
+      mkdir "$path"
     fi
 
-    if unzip "$XXMI_ZIP_PATH" -d "$_path"; then
-      print_success "XXMI Launcher is successfully installed at: $_path"
+    if unzip "$XXMI_ZIP_PATH" -d "$path"; then
+      print_success "XXMI Launcher is successfully installed at: $path"
     else
       print_error "Install failed for unknown reason."
     fi
@@ -242,12 +248,6 @@ install-xxmi() {
 }
 
 run-xxmi() {
-  # check XXMI Launcher is installed
-  if [[ ! -d "$APPDATA_PATH/$XXMILAUNCHER_BASENAME" ]]; then
-    print_error "XXMI Launcher is not installed. Try run './$SCRIPT_NAME install-xxmi' first."
-    exit 1
-  fi
-
   OPTS=$(getopt \
     -o p:,h \
     -l proton,help \
@@ -274,9 +274,14 @@ run-xxmi() {
   done
 
   prepare
-  prepare_proton "$ARG_PROTON"
 
-  echo "$PROTON_BIN"
+  # check XXMI Launcher is installed
+  if [[ ! -d "$APPDATA_PATH/$XXMILAUNCHER_BASENAME" ]]; then
+    print_error "XXMI Launcher is not installed. Try run './$SCRIPT_NAME install-xxmi' first."
+    exit 1
+  fi
+
+  prepare_proton "$ARG_PROTON"
 
   # run
   export STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAM_ROOT"
@@ -301,14 +306,16 @@ add-wwmi-mod() {
 }
 
 rm-wwmi-mod() {
-  local _path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
-  if [[ ! -d "$_path" ]]; then
+  prepare
+
+  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
   fi
 
   local mods=()
-  for mod in "$_path"/*; do
+  for mod in "$path"/*; do
     [[ -d "$mod" ]] && mods+=("$mod")
   done
 
@@ -320,14 +327,14 @@ rm-wwmi-mod() {
 ls-wwmi-mod() {
   prepare
 
-  local _path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
-  if [[ ! -d "$_path" ]]; then
+  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
   fi
 
   local mods=()
-  for mod in "$_path"/*; do
+  for mod in "$path"/*; do
     [[ -d "$mod" ]] && mods+=("$mod")
   done
 
@@ -372,7 +379,8 @@ install-reshade() {
   done
 
   if [[ -z "${1:-}" ]]; then
-    print_error "Please provide a ReShade setup executable. Check: './$SCRIPT_NAME install-reshade --help'"
+    print_error "Please provide a ReShade setup executable."
+    echo "$HELP_INSTALL_RESHADE"
     exit 1
   fi
 
@@ -382,14 +390,14 @@ install-reshade() {
   if [[ -f "$1" ]] && [[ "$1" =~ \.exe ]]; then
     XXMI_ZIP_PATH="$1"
 
-    local _path="$APPDATA_PATH/$RESHADE_BASENAME"
-    if [[ ! -d "$_path" ]]; then
-      mkdir "$_path"
+    local path="$APPDATA_PATH/$RESHADE_BASENAME"
+    if [[ ! -d "$path" ]]; then
+      mkdir "$path"
     fi
 
-    cp "$1" "$_path"
+    cp "$1" "$path"
   else
-    print_error "'$1' is not a zip file."
+    print_error "'$1' is not a executable."
     exit 1
   fi
 
@@ -399,7 +407,7 @@ install-reshade() {
 
   export WINEPREFIX="$WINEPREFIX_PATH"
 
-  "$PROTON_BIN" run "$WIN_APPDATA\\$RESHADE_BASENAME\\$(basename "$1")"
+  "$PROTON_BIN" run "$(win_path "C" "$path/$(basename "$1")")"
 }
 
 install-wwmi-dx12() {
@@ -433,6 +441,13 @@ run-wwmi-dx12() {
   done
 
   prepare
+
+  local path="$APP_PATH/Client/Binaries/Win64/wwmi_dx12_launch.bat"
+  if [[ ! -f "$path" ]]; then
+    print_error "WWMI DX12 is not installed. Try run 'install-wwmi-dx12' first."
+    return 1
+  fi
+
   prepare_proton "$ARG_PROTON"
 
   # run
@@ -450,7 +465,7 @@ run-wwmi-dx12() {
   export PROTON_ENABLE_NVAPI=1
   export PROTON_NVIDIA_LIBS=1
 
-  "$PROTON_BIN" run "Z:${APP_PATH//\//\\}\Client\Binaries\Win64\wwmi_dx12_launch.bat"
+  "$PROTON_BIN" run "$(win_path "Z" "$path")"
 }
 
 # execute
