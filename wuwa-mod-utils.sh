@@ -10,6 +10,40 @@ readonly RESHADE_BASENAME="ReShade"
 
 readonly WIN_APPDATA="C:\users\steamuser\Application Data"
 
+readonly HELP_MAIN="Usage: ./$SCRIPT_NAME COMMAND
+
+COMMAND:
+  install-deps        Install Windows dependencies.
+  install-xxmi        Install XXMI Launcher from portable zip file.
+  run-xxmi            Run XXMI Launcher.exe
+  intsall-reshade     Install ReShade. "
+readonly HELP_INSTALL_XXMI="Usage: ./$SCRIPT_NAME install-xxmi PORTABLE_ZIP_PATH"
+readonly HELP_RUN_XXMI="Usage: ./$SCRIPT_NAME run-xxmi [OPTION]
+
+THEME:
+  Run XXMI Launcher using proton.
+
+[OPTIONS]:
+  -p, --proton        Proton version, or path.
+  -h, --help          Show this help."
+readonly HELP_INSTALL_RESHADE="Usage: .$SCRIPT_NAME install-reshade [OPTION] SETUP_EXE_PATH
+
+THEME:
+  Install ReShade using proton.
+
+[OPTIONS]:
+  -p, --proton        Proton version, or path.
+  -h, --help          Show this help. "
+readonly HELP_RUN_XXMI_DX12="
+Usage: ./$SCRIPT_NAME run-xxmi-dx12 [OPTION]
+
+THEME:
+  Run WWMI DX12 script using proton.
+
+[OPTIONS]:
+  -p, --proton        Proton version, or path.
+  -h, --help          Show this help."
+
 # utils
 print_info() {
   echo -e "\033[0;36m[INFO]\033[0m $1"
@@ -89,17 +123,17 @@ prepare() {
   # find Wuthering Waves installed location
   print_info "Checking Steam Library where Wuthering Waves($APPID) is installed..."
 
-  WUWA_PATH=""
+  APP_PATH=""
 
   for sl in "${STEAM_GAME_LIBRARIES[@]}"; do
     for dir in "$sl"/steamapps/common/*; do
       [[ -d "$dir" ]] || continue
-      [[ -e "$dir/Wuthering Waves.exe" ]] && WUWA_PATH="$dir" && break
+      [[ -e "$dir/Wuthering Waves.exe" ]] && APP_PATH="$dir" && break
     done
   done
 
-  if [[ -n "$WUWA_PATH" ]]; then
-    print_success "Found $APPNAME installed at: $WUWA_PATH"
+  if [[ -n "$APP_PATH" ]]; then
+    print_success "Found $APPNAME installed at: $APP_PATH"
   else
     print_error "Cannot find $APPNAME installed!"
     exit 1
@@ -182,9 +216,7 @@ install-deps() {
 install-xxmi() {
   # TODO: download from git?
   if [[ -z "${1:-}" ]]; then
-    cat <<EOF
-Usage: ./$SCRIPT_NAME install-xxmi PORTABLE_ZIP_PATH
-EOF
+    echo "$HELP_INSTALL_XXMI"
     exit 0
   fi
 
@@ -231,16 +263,7 @@ run-xxmi() {
       shift 2
       ;;
     -h | --help)
-      cat <<EOF
-Usage: ./$SCRIPT_NAME run-xxmi [OPTION]
-
-THEME:
-  Run XXMI Launcher using proton.
-
-[OPTIONS]:
-  -p, --proton        Proton version, or path.
-  -h, --help          Show this help.
-EOF
+      echo "$HELP_RUN_XXMI"
       exit 0
       ;;
     --)
@@ -338,16 +361,7 @@ install-reshade() {
       shift 2
       ;;
     -h | --help)
-      cat <<EOF
-Usage: .$SCRIPT_NAME install-reshade [OPTION] SETUP_EXE_PATH
-
-THEME:
-  Install ReShade using proton.
-
-[OPTIONS]:
-  -p, --proton        Proton version, or path.
-  -h, --help          Show this help.
-EOF
+      echo "$HELP_INSTALL_RESHADE"
       exit 0
       ;;
     --)
@@ -408,16 +422,7 @@ run-wwmi-dx12() {
       shift 2
       ;;
     -h | --help)
-      cat <<EOF
-Usage: ./$SCRIPT_NAME run-xxmi-dx12 [OPTION]
-
-THEME:
-  Run WWMI DX12 script using proton.
-
-[OPTIONS]:
-  -p, --proton        Proton version, or path.
-  -h, --help          Show this help.
-EOF
+      echo "$HELP_RUN_XXMI_DX12"
       exit 0
       ;;
     --)
@@ -445,7 +450,7 @@ EOF
   export PROTON_ENABLE_NVAPI=1
   export PROTON_NVIDIA_LIBS=1
 
-  "$PROTON_BIN" run "Z:${WUWA_PATH//\//\\}\Client\Binaries\Win64\wwmi_dx12_launch.bat"
+  "$PROTON_BIN" run "Z:${APP_PATH//\//\\}\Client\Binaries\Win64\wwmi_dx12_launch.bat"
 }
 
 # execute
@@ -495,15 +500,7 @@ run-wwmi-dx12)
   run-wwmi-dx12 "$@"
   ;;
 *)
-  cat <<EOF
-Usage: ./$SCRIPT_NAME COMMAND
-
-COMMAND:
-  install-deps        Install Windows dependencies.
-  install-xxmi        Install XXMI Launcher from portable zip file.
-  run-xxmi            Run XXMI Launcher.exe
-  intsall-reshade     Install ReShade.
-EOF
+  echo "$HELP_MAIN"
   exit 0
   ;;
 esac
