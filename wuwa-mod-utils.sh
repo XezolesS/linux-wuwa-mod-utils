@@ -192,16 +192,16 @@ prepare_proton() {
     [[ -n "$ARG_PROTON" ]] && print_error "'$ARG_PROTON' not found."
     printf "\nList of Protons:\n"
     for i in "${!STEAM_PROTONS[@]}"; do
-      echo "  $i) $(basename "${STEAM_PROTONS["$i"]}")"
+      echo "  $((i + 1))) $(basename "${STEAM_PROTONS["$i"]}")"
     done
     printf "\n"
 
     while true; do
-      printf "%s" "Select proton version (0-$((${#STEAM_PROTONS[@]} - 1))): "
+      printf "%s" "Select proton version. [1-${#STEAM_PROTONS[@]}]: "
       read -r p_select
 
-      if ((0 <= p_select)) && ((p_select < "${#STEAM_PROTONS[@]}")); then
-        PROTON_BIN="${STEAM_PROTONS["$p_select"]}/proton"
+      if ((1 <= p_select)) && ((p_select <= "${#STEAM_PROTONS[@]}")); then
+        PROTON_BIN="${STEAM_PROTONS["$((p_select - 1))"]}/proton"
         break
       fi
     done
@@ -314,14 +314,7 @@ rm-wwmi-mod() {
     exit 1
   fi
 
-  local mods=()
-  for mod in "$path"/*; do
-    [[ -d "$mod" ]] && mods+=("$mod")
-  done
-
-  for i in "${!mods[@]}"; do
-    echo "  $i. $(basename "${mods["$i"]}")"
-  done
+  ls-wwmi-mod
 }
 
 ls-wwmi-mod() {
@@ -333,19 +326,49 @@ ls-wwmi-mod() {
     exit 1
   fi
 
-  local mods=()
+  WWMI_MODS=()
   for mod in "$path"/*; do
-    [[ -d "$mod" ]] && mods+=("$mod")
+    [[ -d "$mod" ]] && WWMI_MODS+=("$mod")
   done
 
-  echo "${#mods[@]} mod(s) installed."
-  for i in "${!mods[@]}"; do
-    echo "  $i. $(basename "${mods["$i"]}")"
+  echo "${#WWMI_MODS[@]} mod(s) installed."
+  for i in "${!WWMI_MODS[@]}"; do
+    echo "  $((i + 1)). $(basename "${WWMI_MODS["$i"]}")"
   done
 }
 
 rename-wwmi-mod() {
-  true
+  prepare
+
+  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  if [[ ! -d "$path" ]]; then
+    print_error "WWMI is not installed. Install and run XXMI first."
+    exit 1
+  fi
+
+  ls-wwmi-mod
+  printf "%s" "Select a mod to rename. [1-${#WWMI_MODS[@]}]: "
+  read -r m_select
+
+  if ((1 <= m_select)) && ((m_select <= "${#WWMI_MODS[@]}")); then
+    local mod="${WWMI_MODS["$((m_select - 1))"]}"
+    local old_mod_name
+    old_mod_name="$(basename "$mod")"
+
+    printf "Change name(%s) to: " "$old_mod_name"
+    read -r new_mod_name
+
+    if [[ -z "$new_mod_name" ]]; then
+      print_error "Mod name cannot be empty."
+      exit 1
+    elif [[ "$new_mod_name" =~ \w*\/\w* ]]; then
+      print_error "Mod name cannot contains character '/'."
+      exit 1
+    else
+      mv "$mod" "$(dirname "$mod")/$new_mod_name"
+      print_success "$old_mod_name -> $new_mod_name"
+    fi
+  fi
 }
 
 toggle-wwmi-mod() {
