@@ -14,9 +14,16 @@ readonly HELP_MAIN="Usage: ./$SCRIPT_NAME COMMAND
 
 COMMAND:
   install-deps        Install Windows dependencies.
-  install-xxmi        Install XXMI Launcher from portable zip file.
+  install-xxmi        Install XXMI Launcher.
   run-xxmi            Run XXMI Launcher.exe
-  intsall-reshade     Install ReShade. "
+  add-wwmi-mod        Add WWMI mod.
+  rm-wwmi-mod         Remove installed WWMI mod.
+  ls-wwmi-mod         List installed WWMI mods.
+  rename-wwmi-mod     Rename installed WWMI mod.
+  toggle-wwmi-mod     Enable/disable installed WWMI mod.
+  intsall-reshade     Install ReShade.
+  install-wwmi-dx12   Install WWMI-DX12 (ReShade required).
+  run-wwmi-dx12       Run WWMI-DX12 script using Proton."
 readonly HELP_INSTALL_XXMI="Usage: ./$SCRIPT_NAME install-xxmi PORTABLE_ZIP_PATH"
 readonly HELP_RUN_XXMI="Usage: ./$SCRIPT_NAME run-xxmi [OPTION]
 
