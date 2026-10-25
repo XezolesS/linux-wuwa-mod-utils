@@ -33,6 +33,7 @@ THEME:
 [OPTIONS]:
   -p, --proton        Proton version, or path.
   -h, --help          Show this help."
+readonly HELP_ADD_WWMI_MOD="Usage: ./$SCRIPT_NAME add-wwmi-mod ZIP_PATH [MOD_NAME]"
 readonly HELP_INSTALL_RESHADE="Usage: .$SCRIPT_NAME install-reshade [OPTION] SETUP_EXE_PATH
 
 THEME:
@@ -236,20 +237,15 @@ install-xxmi() {
   prepare
 
   if [[ -f "$1" ]] && [[ "$1" =~ \.zip ]]; then
-    XXMI_ZIP_PATH="$1"
-
+    local zip_path="$1"
     local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME"
-    if [[ ! -d "$path" ]]; then
-      mkdir "$path"
-    fi
-
-    if unzip "$XXMI_ZIP_PATH" -d "$path"; then
+    if unzip "$zip_path" -d "$path"; then
       print_success "XXMI Launcher is successfully installed at: $path"
     else
       print_error "Install failed for unknown reason."
     fi
   else
-    print_error "'$1' is not a zip file."
+    print_error "\033[0;36m$1\033[0m is not a zip file."
     exit 1
   fi
 }
@@ -309,7 +305,39 @@ run-xxmi() {
 }
 
 add-wwmi-mod() {
-  true
+  if [[ -z "${1:-}" ]]; then
+    echo "$HELP_ADD_WWMI_MOD"
+    exit 0
+  fi
+
+  prepare
+
+  if [[ -f "$1" ]] && [[ "$1" =~ \.zip ]]; then
+    local zip_path="$1"
+    local zip_filename
+    zip_filename="$(basename "$zip_path")"
+
+    local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+    if [[ ! -d "$path" ]]; then
+      print_error "WWMI is not installed. Install and run XXMI first."
+      exit 1
+    fi
+
+    local mod_name="${2:-"${zip_filename%.zip}"}"
+    if [[ -d "$mod_name" ]]; then
+      print_error "\033[0;36m$mod_name\033[0m is already added."
+      exit 1
+    fi
+
+    if unzip "$zip_path" -d "$path/$mod_name"; then
+      print_success "Mod \033[0;36m$mod_name\033[0m is added."
+    else
+      print_error "Install failed for unknown reason."
+    fi
+  else
+    print_error "\033[0;36m$1\033[0m is not a zip file."
+    exit 1
+  fi
 }
 
 rm-wwmi-mod() {
@@ -500,7 +528,7 @@ install-reshade() {
 
     cp "$1" "$path"
   else
-    print_error "'$1' is not a executable."
+    print_error "\033[0;36m$1\033[0m is not a executable."
     exit 1
   fi
 
