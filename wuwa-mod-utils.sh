@@ -322,6 +322,24 @@ rm-wwmi-mod() {
   fi
 
   ls-wwmi-mod
+  printf "%s" "Select a mod to remove. [1-${#WWMI_MODS[@]}]: "
+  read -r m_select
+
+  if ((1 <= m_select)) && ((m_select <= "${#WWMI_MODS[@]}")); then
+    local mod="${WWMI_MODS["$((m_select - 1))"]}"
+    local mod_name
+    mod_name="$(basename "$mod")"
+
+    printf "Are you sure to remove \033[0;36m%s\033[0m? [y/N]: " "$mod_name"
+    read -r m_confirm
+
+    if [[ "${m_confirm,,}" == "y" ]]; then
+      rm -rf "$mod"
+      print_success "\033[0;36m$mod_name\033[0m has been removed!"
+    else
+      print_info "Canceled."
+    fi
+  fi
 }
 
 ls-wwmi-mod() {
@@ -374,7 +392,7 @@ rename-wwmi-mod() {
     local old_mod_name
     old_mod_name="$(basename "$mod")"
 
-    printf "Change name(%s) to: " "$old_mod_name"
+    printf "Change name(\033[0;36m%s\033[0m) to: " "$old_mod_name"
     read -r new_mod_name
 
     if [[ -z "$new_mod_name" ]]; then
@@ -385,7 +403,7 @@ rename-wwmi-mod() {
       exit 1
     else
       mv "$mod" "$(dirname "$mod")/$new_mod_name"
-      print_success "$old_mod_name -> $new_mod_name"
+      print_success "\033[0;31m$old_mod_name\033[0m -> \033[0;36m$new_mod_name\033[0m"
     fi
   fi
 }
@@ -433,7 +451,7 @@ toggle-wwmi-mod() {
     fi
 
     mv "$mod" "$new_path"
-    print_success "Mod '$mod_name' is $result_text."
+    print_success "Mod \033[0;36m$mod_name\033[0m is $result_text."
   fi
 }
 
