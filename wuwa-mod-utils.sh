@@ -1,15 +1,5 @@
 #! /usr/bin/env bash
 
-readonly SCRIPT_NAME="wuwa-mod-utils.sh"
-
-readonly APPID=3513350
-readonly APPNAME="Wuthering Waves"
-
-readonly XXMILAUNCHER_BASENAME="XXMI-Launcher"
-readonly RESHADE_BASENAME="ReShade"
-
-readonly WIN_APPDATA="C:\users\steamuser\Application Data"
-
 readonly HELP_MAIN="Usage: ./$SCRIPT_NAME COMMAND
 
 COMMAND:
@@ -52,6 +42,16 @@ THEME:
 [OPTIONS]:
   -p, --proton        Proton version, or path.
   -h, --help          Show this help."
+
+readonly SCRIPT_NAME="wuwa-mod-utils.sh"
+
+readonly APPID=3513350
+readonly APPNAME="Wuthering Waves"
+
+readonly XXMI_BASENAME="XXMI-Launcher"
+readonly RESHADE_BASENAME="ReShade"
+
+readonly WIN_APPDATA="C:\users\steamuser\Application Data"
 
 # utils
 print_info() {
@@ -225,13 +225,24 @@ prepare_proton() {
 
 # commands
 install-deps() {
-  if ! which protontrick &>/dev/null; then
+  if ! which protontricks &>/dev/null; then
     print_error "'protontricks' is not installed! Please install it first."
     exit 1
   fi
 
-  protontricks "$APPID" d3dcompiler_47 && print_success "'d3dcompiler_47' is installed."
-  protontricks "$APPID" powershell && print_success "'powershell' is installed."
+  _install() {
+    local pkg="$1"
+    print_info "Installing \033[0;36m$pkg\033[0m..."
+    if protontricks "$APPID" "$pkg" &>/dev/null; then
+      print_success "\033[0;36m$pkg\033[0m is installed."
+    else
+      print_error "\033[0;36m$pkg\033[0m is not installed."
+    fi
+  }
+
+  _install "vcrun2022"
+  _install "d3dcompiler_47"
+  _install "powershell"
 }
 
 install-xxmi() {
@@ -245,7 +256,7 @@ install-xxmi() {
 
   if [[ -f "$1" ]] && [[ "$1" =~ \.zip ]]; then
     local zip_path="$1"
-    local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME"
+    local path="$APPDATA_PATH/$XXMI_BASENAME"
     if unzip "$zip_path" -d "$path"; then
       print_success "XXMI Launcher is successfully installed at: $path"
     else
@@ -286,7 +297,7 @@ run-xxmi() {
   prepare
 
   # check XXMI Launcher is installed
-  if [[ ! -d "$APPDATA_PATH/$XXMILAUNCHER_BASENAME" ]]; then
+  if [[ ! -d "$APPDATA_PATH/$XXMI_BASENAME" ]]; then
     print_error "XXMI Launcher is not installed. Try run './$SCRIPT_NAME install-xxmi' first."
     exit 1
   fi
@@ -308,7 +319,7 @@ run-xxmi() {
   export PROTON_ENABLE_NVAPI=1
   export PROTON_NVIDIA_LIBS=1
 
-  "$PROTON_BIN" run "$WIN_APPDATA\\$XXMILAUNCHER_BASENAME\Resources\Bin\XXMI Launcher.exe"
+  "$PROTON_BIN" run "$WIN_APPDATA\\$XXMI_BASENAME\Resources\Bin\XXMI Launcher.exe"
 }
 
 manage-wwmi-mod() {
@@ -383,7 +394,7 @@ add-wwmi-mod() {
     local zip_filename
     zip_filename="$(basename "$zip_path")"
 
-    local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+    local path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/Mods"
     if [[ ! -d "$path" ]]; then
       print_error "WWMI is not installed. Install and run XXMI first."
       exit 1
@@ -409,7 +420,7 @@ add-wwmi-mod() {
 rm-wwmi-mod() {
   prepare
 
-  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  local path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/Mods"
   if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
@@ -442,7 +453,7 @@ rm-wwmi-mod() {
 ls-wwmi-mod() {
   prepare
 
-  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  local path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/Mods"
   if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
@@ -474,7 +485,7 @@ ls-wwmi-mod() {
 rename-wwmi-mod() {
   prepare
 
-  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  local path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/Mods"
   if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
@@ -511,7 +522,7 @@ rename-wwmi-mod() {
 toggle-wwmi-mod() {
   prepare
 
-  local path="$APPDATA_PATH/$XXMILAUNCHER_BASENAME/WWMI/Mods"
+  local path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/Mods"
   if [[ ! -d "$path" ]]; then
     print_error "WWMI is not installed. Install and run XXMI first."
     exit 1
