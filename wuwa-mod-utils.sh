@@ -16,6 +16,7 @@ COMMAND:
   install-deps        Install Windows dependencies.
   install-xxmi        Install XXMI Launcher.
   run-xxmi            Run XXMI Launcher.exe
+  manage-wwmi-mod     Manage WWMI mods via interactive mode.
   add-wwmi-mod        Add WWMI mod.
   rm-wwmi-mod         Remove installed WWMI mod.
   ls-wwmi-mod         List installed WWMI mods.
@@ -72,6 +73,10 @@ win_path() {
 }
 
 prepare() {
+  if [[ -n "$__PREPARED__" ]]; then
+    return 0
+  fi
+
   # find Steam
   STEAM_ROOT="$HOME/.steam/steam"
 
@@ -175,6 +180,8 @@ prepare() {
     print_error "Cannot find $APPNAME prefix!"
     exit 1
   fi
+
+  __PREPARED__=1
 }
 
 prepare_proton() {
@@ -304,6 +311,63 @@ run-xxmi() {
   "$PROTON_BIN" run "$WIN_APPDATA\\$XXMILAUNCHER_BASENAME\Resources\Bin\XXMI Launcher.exe"
 }
 
+manage-wwmi-mod() {
+  prepare
+
+  local manage_help_msg="  1|a|add)     Add a WWMI mod.
+  2|r|rm)      Remove a WWMI mod.
+  3|l|ls)      List installed WWMI mod.
+  4|n|rename)  Rename a WWMI mod.
+  5|t|toggle)  Enable/Disable a WWMI mod.
+
+  h) Print this message.
+  q) Quit."
+
+  echo "$manage_help_msg"
+
+  while true; do
+    printf " \033[0;31mwwmi-mod-manager >\033[0m "
+    read -r m_cmd
+
+    case "$m_cmd" in
+    1 | a | add)
+      printf " \033[0;31mPath to mod zip:\033[0m"
+      read -e -p " " m_modzip
+
+      if [[ -z "$m_modzip" ]]; then
+        print_error "Path to the zip file must be given!"
+        continue
+      fi
+
+      printf " \033[0;31mMod name (default if empty):\033[0m "
+      read -r m_modname
+      add-wwmi-mod "$m_modzip" "$m_modname"
+      ;;
+    2 | r | rm)
+      rm-wwmi-mod
+      ;;
+    3 | l | ls)
+      ls-wwmi-mod
+      ;;
+    4 | n | rename)
+      rename-wwmi-mod
+      ;;
+    5 | t | toggle)
+      toggle-wwmi-mod
+      ;;
+    h)
+      echo "$manage_help_msg"
+      ;;
+    q)
+      exit 0
+      ;;
+    *)
+      continue
+      ;;
+    esac
+  done
+}
+
 add-wwmi-mod() {
   if [[ -z "${1:-}" ]]; then
     echo "$HELP_ADD_WWMI_MOD"
@@ -312,8 +376,10 @@ add-wwmi-mod() {
 
   prepare
 
-  if [[ -f "$1" ]] && [[ "$1" =~ \.zip ]]; then
-    local zip_path="$1"
+  local arg_path="${1/#\~/$HOME}"
+
+  if [[ -f "$arg_path" ]] && [[ "$arg_path" =~ \.zip ]]; then
+    local zip_path="$arg_path"
     local zip_filename
     zip_filename="$(basename "$zip_path")"
 
@@ -335,7 +401,7 @@ add-wwmi-mod() {
       print_error "Install failed for unknown reason."
     fi
   else
-    print_error "\033[0;36m$1\033[0m is not a zip file."
+    print_error "\033[0;36m$arg_path\033[0m is not a zip file."
     exit 1
   fi
 }
@@ -349,6 +415,7 @@ rm-wwmi-mod() {
     exit 1
   fi
 
+  print_info "\033[1;31mWWMI Mod Manager - Remove\033[0m"
   ls-wwmi-mod
   printf "%s" "Select a mod to remove. [1-${#WWMI_MODS[@]}]: "
   read -r m_select
@@ -367,6 +434,8 @@ rm-wwmi-mod() {
     else
       print_info "Canceled."
     fi
+  else
+    print_info "Canceled."
   fi
 }
 
@@ -388,7 +457,7 @@ ls-wwmi-mod() {
     [[ -d "$mod" ]] && WWMI_MODS+=("$mod")
   done
 
-  echo "${#WWMI_MODS[@]} mod(s) installed. ([v]: enabled, [ ]: disabled)"
+  print_info "${#WWMI_MODS[@]} mod(s) installed. ([\033[0;32mv\033[0m]: enabled, [ ]: disabled)"
   local mod_name
   local enable_mark
 
@@ -398,7 +467,7 @@ ls-wwmi-mod() {
 
     enable_mark="v" && [[ "${WWMI_MODS[$i]}" == *"DISABLED"* ]] && enable_mark=" "
 
-    printf "  %d) [%s] %s\n" "$((i + 1))" "$enable_mark" "$mod_name"
+    printf "  %d) [\033[0;32m%s\033[0m] \033[0;33m%s\033[0m\n" "$((i + 1))" "$enable_mark" "$mod_name"
   done
 }
 
@@ -411,6 +480,7 @@ rename-wwmi-mod() {
     exit 1
   fi
 
+  print_info "\033[1;31mWWMI Mod Manager - Rename\033[0m"
   ls-wwmi-mod
   printf "%s" "Select a mod to rename. [1-${#WWMI_MODS[@]}]: "
   read -r m_select
@@ -433,6 +503,8 @@ rename-wwmi-mod() {
       mv "$mod" "$(dirname "$mod")/$new_mod_name"
       print_success "\033[0;31m$old_mod_name\033[0m -> \033[0;36m$new_mod_name\033[0m"
     fi
+  else
+    print_info "Canceled."
   fi
 }
 
@@ -445,6 +517,7 @@ toggle-wwmi-mod() {
     exit 1
   fi
 
+  print_info "\033[1;31mWWMI Mod Manager - Toggle\033[0m"
   ls-wwmi-mod
   printf "%s" "Select a mod to toggle. [1-${#WWMI_MODS[@]}]: "
   read -r m_select
@@ -480,6 +553,8 @@ toggle-wwmi-mod() {
 
     mv "$mod" "$new_path"
     print_success "Mod \033[0;36m$mod_name\033[0m is $result_text."
+  else
+    print_info "Canceled."
   fi
 }
 
@@ -613,13 +688,17 @@ run-xxmi)
   shift
   run-xxmi "$@"
   ;;
+manage-wwmi-mod)
+  shift
+  manage-wwmi-mod
+  ;;
 add-wwmi-mod)
   shift
   add-wwmi-mod "$@"
   ;;
 rm-wwmi-mod)
   shift
-  rm-wwmi-mod "$@"
+  rm-wwmi-mod
   ;;
 ls-wwmi-mod)
   shift

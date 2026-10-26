@@ -35,6 +35,7 @@ The scripts are **NOT** AI-assisted.
 |`install-deps`|Install Windows dependencies.|
 |`install-xxmi`|Install XXMI Launcher.|
 |`run-xxmi`|Run XXMI Launcher.exe|
+|`manage-wwmi-mod`|Manage WWMI mods via interactive mode.|
 |`add-wwmi-mod`|Add WWMI mod.|
 |`rm-wwmi-mod`|Remove installed WWMI mod.|
 |`ls-wwmi-mod`|List installed WWMI mods.|
@@ -50,8 +51,8 @@ The scripts are **NOT** AI-assisted.
 
 Installs required Windows components into the Wuthering Waves prefix:
 
-- `d3dcompiler_47`
-- `powershell`
+- `d3dcompiler_47` to fix [XXMI-Launcher#325](https://github.com/SpectrumQT/XXMI-Launcher/issues/325)
+- `powershell` to run WWMI-DX12
 
 ### `install-xxmi`
 
@@ -73,6 +74,21 @@ Options:
 
 - `-p, --proton` — Proton version name or Proton path
 - `-h, --help` — show help
+
+### `manage-wwmi-mod`
+
+```bash
+./wuwa-mod-utils.sh manage-wwmi-mod
+```
+
+Open a wuwa-mod-manager to manage WWMI mods.
+Can perform:
+
+- `add-wwmi-mod`
+- `rm-wwmi-mod`
+- `ls-wwmi-mod`
+- `rename-wwmi-mod`
+- `toggle-wwmi-mod`
 
 ### `add-wwmi-mod`
 
