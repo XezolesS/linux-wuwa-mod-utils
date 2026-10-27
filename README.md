@@ -164,6 +164,30 @@ You can pass a `ZIP_PATH` to install directly from given `.zip` archive.
 
 Runs the WWMI-DX12 launch script through Proton.
 
+### open-editor
+
+```bash
+./wuwa-mod-utils.sh edit-config [CONFIG_FILE]
+```
+
+Open a config with the default editor. You can pass an environment variable `$EDITOR`
+to set a editor.
+
+e.g.) Open a config with a vim
+
+```bash
+EDITOR=vim ./wuwa-mod-utils.sh edit-config [CONFIG_FILE]
+```
+
+#### `CONFIG_FILE`
+
+- `Engine.ini`, from Wuthering Waves
+- `UserEngine.ini`, from Withering Waves
+- `d3dx.ini`, from WWMI
+- `d3dx_user.ini`, from WWMI
+- `ReShade.ini`, from ReShade
+- `wwmi_dx12.ini`, from WWMI-DX12
+
 ## Notes
 
 - The script auto-detects Steam libraries, Proton installations, and the

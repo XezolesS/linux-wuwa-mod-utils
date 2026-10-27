@@ -14,7 +14,8 @@ COMMAND:
   toggle-wwmi-mod     Enable/disable installed WWMI mod.
   intsall-reshade     Install ReShade.
   install-wwmi-dx12   Install WWMI-DX12 (ReShade required).
-  run-wwmi-dx12       Run WWMI-DX12 script using Proton."
+  run-wwmi-dx12       Run WWMI-DX12 script using Proton.
+  edit-config         Open a config with the default editor. (\$EDITOR=$EDITOR)"
 readonly HELP_INSTALL_XXMI="Usage: ./$SCRIPT_NAME install-xxmi PORTABLE_ZIP_PATH"
 readonly HELP_RUN_XXMI="Usage: ./$SCRIPT_NAME run-xxmi [OPTION]
 
@@ -42,6 +43,16 @@ THEME:
 [OPTIONS]:
   -p, --proton        Proton version, or path.
   -h, --help          Show this help."
+readonly HELP_EDIT_CONFIG="
+Usage: ./$SCRIPT_NAME edit-config [CONFIG_FILE]
+
+[CONFIG_FILE]:
+  Engine.ini        Wuthering Waves
+  UserEngine.ini    Wuthering Waves
+  d3dx.ini          XXMI/WWMI
+  d3dx_user.ini     XXMI/WWMI
+  ReShade.ini ReShade
+  wwmi_dx12.ini WWMI-DX12"
 
 readonly SCRIPT_NAME="wuwa-mod-utils.sh"
 
@@ -240,7 +251,7 @@ install-deps() {
     exit 1
   fi
 
-  _install() {
+  _install-dep() {
     local pkg="$1"
     print_info "Installing \033[0;36m$pkg\033[0m..."
     if protontricks "$APPID" "$pkg" &>/dev/null; then
@@ -250,13 +261,13 @@ install-deps() {
     fi
   }
 
-  _install "vcrun2022"
-  _install "d3dcompiler_47"
-  _install "powershell"
+  _install-dep "vcrun2022"
+  _install-dep "d3dcompiler_47"
+  _install-dep "powershell"
 }
 
 install-xxmi() {
-  # TODO: download from git?
+  # TODO: rewrite
   if [[ -z "${1:-}" ]]; then
     echo "$HELP_INSTALL_XXMI"
     exit 0
@@ -580,6 +591,7 @@ toggle-wwmi-mod() {
 }
 
 install-reshade() {
+  # TODO: rewrite
   OPTS=$(getopt \
     -o p:,h \
     -l proton,help \
@@ -635,6 +647,9 @@ install-reshade() {
   "$PROTON_BIN" run "$(win_path "C" "$path/$(basename "$1")")"
 }
 
+# TODO: uninstall-reshade
+# TODO: toggle-reshade
+
 install-wwmi-dx12() {
   prepare
 
@@ -688,6 +703,9 @@ install-wwmi-dx12() {
     print_error "Install failed for unknown reason."
   fi
 }
+
+# TODO: uninstall-wwmi-dx12
+# TODO: toggle-wwmi-dx12
 
 run-wwmi-dx12() {
   OPTS=$(getopt \
@@ -743,6 +761,26 @@ run-wwmi-dx12() {
   "$PROTON_BIN" run "$(win_path "Z" "$path")"
 }
 
+edit-config() {
+  prepare
+
+  local path
+  case "$1" in
+  Engine.ini) path="$APP_PATH/Client/Saved/Config/WindowsNoEditor/Engine.ini" ;;
+  UserEngine.ini) path="$APP_PATH/Client/Config/UserEngine.ini" ;;
+  d3dx.ini) path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/d3dx.ini" ;;
+  d3dx_user.ini) path="$APPDATA_PATH/$XXMI_BASENAME/WWMI/d3dx_user.ini" ;;
+  ReShade.ini) path="$APP_PATH/Client/Binaries/Win64/ReShade.ini" ;;
+  wwmi_dx12.ini) path="$APP_PATH/Client/Binaries/Win64/wwmi_dx12.ini" ;;
+  *)
+    echo "$HELP_EDIT_CONFIG"
+    exit 0
+    ;;
+  esac
+
+  "$EDITOR" "$path"
+}
+
 # execute
 case "$1" in
 install-deps)
@@ -792,6 +830,10 @@ install-wwmi-dx12)
 run-wwmi-dx12)
   shift
   run-wwmi-dx12 "$@"
+  ;;
+edit-config)
+  shift
+  edit-config "$@"
   ;;
 *)
   echo "$HELP_MAIN"
