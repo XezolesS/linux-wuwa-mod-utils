@@ -46,6 +46,7 @@ cd linux-wuwa-mod-utils
 |`intsall-reshade`|Install ReShade.|
 |`install-wwmi-dx12`|Install WWMI-DX12 (ReShade required).|
 |`run-wwmi-dx12`|Run WWMI-DX12 script using Proton.|
+|`edit-config`|Open a config with the default editor ($EDITOR).|
 
 ### Command in detail
 
