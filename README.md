@@ -28,6 +28,7 @@ The scripts are **NOT** AI-assisted.
 
 ```bash
 git clone https://github.com/XezolesS/linux-wuwa-mod-utils.git
+cd linux-wuwa-mod-utils
 ./wuwa-mod-utils.sh COMMAND
 ```
 
