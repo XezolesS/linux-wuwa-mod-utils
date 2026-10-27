@@ -140,7 +140,18 @@ Copies a ReShade installer into the prefix and runs it through Proton.
 
 ### `install-wwmi-dx12`
 
-Currently a placeholder.
+```bash
+./wuwa-mod-utils.sh install-wwmi-dx12 [ZIP_PATH]
+```
+
+Installs WWMI-DX12. It extract from `.zip` archive to `.../Wuthering Waves/Client/Binaries/Win64/`
+
+The script will search for `wwmi-dx12*.zip` from `~/Downloads/` and currently
+working directory(`$PWD`).
+
+If no `.zip` archive is found, it will present a [Download URL](https://github.com/lekarsenten/wwmi-dx12/releases/latest)
+
+You can pass a `ZIP_PATH` to install directly from given `.zip` archive.
 
 ### `run-wwmi-dx12`
 
@@ -148,7 +159,7 @@ Currently a placeholder.
 ./wuwa-mod-utils.sh run-wwmi-dx12 [--proton PROTON]
 ```
 
-Runs the WWMI DX12 launch script through Proton.
+Runs the WWMI-DX12 launch script through Proton.
 
 ## Notes
 

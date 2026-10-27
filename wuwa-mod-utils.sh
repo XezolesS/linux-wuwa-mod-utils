@@ -37,7 +37,7 @@ readonly HELP_RUN_XXMI_DX12="
 Usage: ./$SCRIPT_NAME run-xxmi-dx12 [OPTION]
 
 THEME:
-  Run WWMI DX12 script using proton.
+  Run WWMI-DX12 script using proton.
 
 [OPTIONS]:
   -p, --proton        Proton version, or path.
@@ -52,6 +52,10 @@ readonly XXMI_BASENAME="XXMI-Launcher"
 readonly RESHADE_BASENAME="ReShade"
 
 readonly WIN_APPDATA="C:\users\steamuser\Application Data"
+
+readonly XXMI_DL_URL="https://github.com/SpectrumQT/XXMI-Launcher/releases/latest"
+readonly RESHADE_DL_URL="https://reshade.me/#download"
+readonly WWMI_DX12_DL_URL="https://github.com/lekarsenten/wwmi-dx12/releases/latest"
 
 # utils
 print_info() {
@@ -70,6 +74,13 @@ win_path() {
   local drive="$1"
   local path="$2"
   printf "%s:%s" "$drive" "${path//\//\\}"
+}
+
+expand_path() {
+  local path="$1"
+  path="${path/#\~/$HOME}"
+  path="${path/#\./$PWD}"
+  printf "%s" "${path}"
 }
 
 prepare() {
@@ -207,16 +218,15 @@ prepare_proton() {
     [[ -n "$ARG_PROTON" ]] && print_error "'$ARG_PROTON' not found."
     printf "\nList of Protons:\n"
     for i in "${!STEAM_PROTONS[@]}"; do
-      echo "  $((i + 1))) $(basename "${STEAM_PROTONS["$i"]}")"
+      printf "  %d) \033[0;33m%s\033[0m\n" "$((i + 1))" "$(basename "${STEAM_PROTONS[$i]}")"
     done
     printf "\n"
 
     while true; do
-      printf "%s" "Select proton version. [1-${#STEAM_PROTONS[@]}]: "
-      read -r p_select
+      read -r -p "Select proton version. [1-${#STEAM_PROTONS[@]}]: " select
 
-      if ((1 <= p_select)) && ((p_select <= "${#STEAM_PROTONS[@]}")); then
-        PROTON_BIN="${STEAM_PROTONS["$((p_select - 1))"]}/proton"
+      if ((1 <= select)) && ((select <= "${#STEAM_PROTONS[@]}")); then
+        PROTON_BIN="${STEAM_PROTONS[$((select - 1))]}/proton"
         break
       fi
     done
@@ -473,7 +483,7 @@ ls-wwmi-mod() {
   local enable_mark
 
   for i in "${!WWMI_MODS[@]}"; do
-    mod_name=$(basename "${WWMI_MODS["$i"]}")
+    mod_name=$(basename "${WWMI_MODS[$i]}")
     mod_name=$(echo "${mod_name/DISABLED/}" | xargs)
 
     enable_mark="v" && [[ "${WWMI_MODS[$i]}" == *"DISABLED"* ]] && enable_mark=" "
@@ -605,8 +615,6 @@ install-reshade() {
   prepare_proton "$ARG_PROTON"
 
   if [[ -f "$1" ]] && [[ "$1" =~ \.exe ]]; then
-    XXMI_ZIP_PATH="$1"
-
     local path="$APPDATA_PATH/$RESHADE_BASENAME"
     if [[ ! -d "$path" ]]; then
       mkdir "$path"
@@ -628,7 +636,57 @@ install-reshade() {
 }
 
 install-wwmi-dx12() {
-  true
+  prepare
+
+  local candidates=()
+  if [[ -z "${1:-}" ]]; then
+    # check $HOME/Downloads
+    for f in "$HOME/Downloads"/*; do
+      [[ -f "$f" ]] && [[ "$f" == *"wwmi-dx12"*.zip ]] && candidates+=("$f")
+    done
+
+    # check current path
+    for f in ./*; do
+      [[ -f "$f" ]] && [[ "$f" == *"wwmi-dx12"*.zip ]] && candidates+=("$f")
+    done
+  else
+    candidates=("$1")
+  fi
+
+  if (("${#candidates[@]}" == 0)); then
+    print_error "WWMI-DX12 .zip archive is not found!"
+    print_info "You can download it from: $WWMI_DX12_DL_URL"
+    exit 1
+  fi
+
+  local path="$APP_PATH/Client/Binaries/Win64"
+  if [[ -f "$path/wwmi_dx12_launch.bat" ]]; then
+    print_info "WWMI-DX12 is already installed."
+    read -r -p "Overwrite installation? [y/N]: " confirm
+    if [[ "${confirm,,}" != "y" ]]; then
+      print_info "Installation canceled."
+      exit 1
+    fi
+  fi
+
+  local zip_path
+  if ((${#candidates[@]} == 1)); then
+    zip_path="${candidates[0]}"
+  else
+    print_info "Multiple WWMI-DX12 is found."
+    for i in "${!candidates[@]}"; do
+      printf "  %d) \033[0;33m%s\033[0m\n" "$((i + 1))" "$(basename "${candidates[$i]}")"
+    done
+
+    read -r -p "Select one to install. [1-${#candidates[@]}]: " select
+    zip_path="${candidates[(($select - 1))]}"
+  fi
+
+  if unzip "$zip_path" -d "$path"; then
+    print_success "WWMI-DX12 is installed."
+  else
+    print_error "Install failed for unknown reason."
+  fi
 }
 
 run-wwmi-dx12() {
@@ -661,8 +719,8 @@ run-wwmi-dx12() {
 
   local path="$APP_PATH/Client/Binaries/Win64/wwmi_dx12_launch.bat"
   if [[ ! -f "$path" ]]; then
-    print_error "WWMI DX12 is not installed. Try run 'install-wwmi-dx12' first."
-    return 1
+    print_error "WWMI-DX12 is not installed. Try run 'install-wwmi-dx12' first."
+    exit 1
   fi
 
   prepare_proton "$ARG_PROTON"
@@ -729,7 +787,7 @@ install-reshade)
   ;;
 install-wwmi-dx12)
   shift
-  install-wwmi-dx12
+  install-wwmi-dx12 "$@"
   ;;
 run-wwmi-dx12)
   shift
