@@ -9,7 +9,7 @@ It helps you:
 - install and run **XXMI Launcher**
 - manage **WWMI** mods
 - install and run **ReShade**
-- install and run **WWMI DX12** through Proton
+- install and run **WWMI-DX12** through Proton
 
 ## AI USAGE DISCLAIMER
 
@@ -27,6 +27,7 @@ The scripts are **NOT** AI-assisted.
 ## Usage
 
 ```bash
+git clone https://github.com/XezolesS/linux-wuwa-mod-utils.git
 ./wuwa-mod-utils.sh COMMAND
 ```
 
@@ -51,7 +52,8 @@ The scripts are **NOT** AI-assisted.
 
 Installs required Windows components into the Wuthering Waves prefix:
 
-- `d3dcompiler_47` to fix [XXMI-Launcher#325](https://github.com/SpectrumQT/XXMI-Launcher/issues/325)
+- `vcrun2022`, dependencies of **WWMI Launcher**
+- `d3dcompiler_47` to fix [SpectrumQT/XXMI-Launcher#325](https://github.com/SpectrumQT/XXMI-Launcher/issues/325)
 - `powershell` to run WWMI-DX12
 
 ### `install-xxmi`
@@ -171,17 +173,32 @@ Wuthering Waves prefix.
 
 ## Mod storage layout
 
+The script installs XXMI Launcher at:
+
+```text
+.../drive_c/users/steamuser/Application Data/XXMI-Launcher
+C:\users\steamuser\Application Data\XXMI-Launcher
+```
+
 The script expects WWMI mods under:
 
 ```text
-.../Application Data/XXMI-Launcher/WWMI/Mods
+.../drive_c/users/steamuser/Application Data/XXMI-Launcher/WWMI/Mods
+C:\users\steamuser\Application Data\XXMI-Launcher\WWMI\Mods
 ```
 
 Disabled mods are stored in:
 
 ```text
-.../Application Data/XXMI-Launcher/WWMI/Mods/DISABLED
+.../drive_c/users/steamuser/Application Data/XXMI-Launcher/WWMI/Mods/DISABLED
+C:\users\steamuser\Application Data\XXMI-Launcher\WWMI\Mods\DISABLED
 ```
 
 It detects `DISABLED` in the name of the mod directory, but not used in disabling
 mods.
+
+## References
+
+- [SpectrumQT/XXMI Launcher](https://github.com/SpectrumQT/XXMI-Launcher)
+- [ReShade](https://reshade.me/)
+- [lekarsenten/WWMI-DX12](https://github.com/lekarsenten/wwmi-dx12)
